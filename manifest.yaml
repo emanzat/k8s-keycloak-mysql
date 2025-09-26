@@ -1,0 +1,58 @@
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: keycloak
+spec:
+  instances: 3
+  livenessProbe:
+    periodSeconds: 15
+    failureThreshold: 5
+  readinessProbe:
+    periodSeconds: 10
+    failureThreshold: 3	
+  db:
+    vendor: mysql
+    host: mysql
+    port: 3306
+    database: keycloak
+    usernameSecret:
+      name: keycloak-db-secret
+      key: username
+    passwordSecret:
+      name: keycloak-db-secret
+      key: password
+  http:
+    tlsSecret: keycloak-tls-secret
+    httpEnabled: true
+    httpPort: 8080
+    httpsPort: 8443
+  hostname:
+    hostname: "https://keycloak.example.com"
+    admin: "https://admin.keycloak.example.com"
+    backchannelDynamic: true
+    strict: false
+  bootstrapAdmin:
+    user:
+      secret: "keycloak-bootstrap-user"       # username/password initial
+  additionalOptions:
+    - name: KC_HEALTH_ENABLED
+      value: "true"
+    - name: KC_METRICS_ENABLED
+      value: "true"
+    - name: KC_LOG_LEVEL
+      value: "INFO"
+    - name: KC_BOOTSTRAP_ADMIN_USERNAME
+      value: admin
+    - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+      value: admin
+
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: keycloak-bootstrap-user
+  namespace: default
+data:
+  password: YWRtaW4=
+  username: YWRtaW4=
+type: Opaque
